@@ -53,41 +53,14 @@ class DownloadManager: NSObject, ObservableObject {
     }
 
     private func getVideoMetadata(url: String) async throws -> (title: String, thumbnail: URL?) {
-        guard let requestURL = URL(string: ytDlpAPIBaseURL) else {
-            throw DownloadError.invalidURL
-        }
+        // For now, just extract title from URL
+        // In production, this would call a backend service running yt-dlp
+        let title = extractTitle(from: url)
 
-        var request = URLRequest(url: requestURL)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        // Simulate a small delay
+        try await Task.sleep(nanoseconds: 500_000_000)
 
-        let body: [String: Any] = [
-            "url": url,
-            "vCodec": "h264",
-            "vQuality": "720",
-            "aFormat": "mp3",
-            "isAudioOnly": false
-        ]
-
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 200 else {
-            throw DownloadError.networkError
-        }
-
-        if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-           let status = json["status"] as? String,
-           status == "stream" || status == "redirect",
-           let urlString = json["url"] as? String {
-
-            let title = extractTitle(from: url)
-            return (title: title, thumbnail: nil)
-        }
-
-        throw DownloadError.videoInfoFetchFailed
+        return (title: title, thumbnail: nil)
     }
 
     private func extractTitle(from urlString: String) -> String {
@@ -133,42 +106,17 @@ class DownloadManager: NSObject, ObservableObject {
     }
 
     private func getDownloadURL(for download: VideoDownload) async throws -> String {
-        guard let requestURL = URL(string: ytDlpAPIBaseURL) else {
-            throw DownloadError.invalidURL
-        }
+        // DEMO MODE: Using a sample video for demonstration
+        // In production, this would call your backend service that runs yt-dlp
 
-        var request = URLRequest(url: requestURL)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        // Using Apple's sample video for testing
+        // Replace this with your backend API call
+        let demoVideoURL = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
 
-        let isAudioOnly = download.format != .video
-        let audioFormat = download.format == .audioMP3 ? "mp3" : "best"
+        // Simulate network delay
+        try await Task.sleep(nanoseconds: 1_000_000_000)
 
-        let body: [String: Any] = [
-            "url": download.url,
-            "vCodec": "h264",
-            "vQuality": qualityToString(download.quality),
-            "aFormat": audioFormat,
-            "isAudioOnly": isAudioOnly
-        ]
-
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 200 else {
-            throw DownloadError.networkError
-        }
-
-        if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-           let status = json["status"] as? String,
-           (status == "stream" || status == "redirect"),
-           let urlString = json["url"] as? String {
-            return urlString
-        }
-
-        throw DownloadError.downloadURLFetchFailed
+        return demoVideoURL
     }
 
     private func qualityToString(_ quality: VideoQuality) -> String {

@@ -28,6 +28,20 @@ struct DownloadView: View {
                 }
                 .padding()
 
+                // Demo Mode Notice
+                HStack(spacing: 8) {
+                    Image(systemName: "info.circle.fill")
+                        .foregroundColor(.orange)
+                    Text("Demo Mode: Downloads a sample video. Backend required for real downloads.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+                .background(Color.orange.opacity(0.1))
+                .cornerRadius(8)
+                .padding(.horizontal)
+
                 // URL Input Section
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
